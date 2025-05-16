@@ -1,0 +1,441 @@
+/**{
+    box-sizing: border-box;
+}
+body{
+    margin: 0;
+    background-color:#0b2434;
+    padding: 40px;
+}
+
+main{
+    background-color: #f5f5f5;
+    height: 700px;
+    border-radius: 7px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+
+}
+.title{
+    font-size: 40px;
+    margin:0;
+}
+.instructions{
+    font-family: 'Inter',sans-serif;
+    font-weight: 400px ;
+    margin-top: 0px;
+    text-align: center;
+}
+.dice-container{
+    display: grid;
+    grid-template: auto auto / repeat(5,1fr);
+    gap:20px;
+}
+.dice-container button{
+    height: 40px;
+    width: 40px;
+    box-shadow: 0px 2px 2px rgba(0, 0, 0, 0.15);
+    border: none;
+    background-color: white;
+    font-family: karla,sans-serif;
+    font-size: 1.75rem;
+    font-weight:bold;
+    cursor: pointer;
+    border-radius: 6px;
+}
+.dice-roll{
+    height: 40px;
+    width: 140px;
+    margin-top: 20px;
+    border:none;
+    border-radius: 6px;
+    font-size: 1.2rem;
+    color: white;
+    background-color:#0b2434 ;
+    font-family: karla,sans-serif;
+    cursor: pointer;
+
+}*/
+
+/***{
+    box-sizing: border-box;
+}
+body{
+    margin:0;
+    background-color: black;
+    font-family: "Hanken Gortesk",sans-serif,Arial;
+    color:#D9D9D9;
+    padding: 20px;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+}
+header{
+    text-align: center;
+}
+header>p{
+    font-size: 0.875rem;
+    max-width: 450px;
+    color:#8E8E8E;
+}
+section.game-status{
+  
+         text-align: center;
+         justify-content: center;
+         display: flex;
+         flex-direction: column;
+         width: 100%;
+         max-width: 450px;
+         height: 90px;
+         color: #F9F4DA;
+         border-radius: 4px;
+         margin-block: 30px;
+}
+section.game-status>p{
+    margin:5px;
+
+}
+section.game-status>p.farewell-message{
+   
+   
+    font-style: italic;
+    font-weight: 400;
+
+}
+section.game-status.won{
+    background-color: #10A95B;
+}
+section.game-status.lost{
+    background-color: #a91a10;
+}
+section.game-status.farewell{
+    background-color:#7a5ea7 ;
+    border:1px dashed #323232;
+}
+
+
+section.language-chips{
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    justify-content: center;
+    max-width: 450px;
+    margin-top: 30px;
+}
+span.chip{
+    border-radius: 3px;
+    padding: 4.5px;
+    justify-content: center;
+
+}
+span.chip.lost::before{
+    content: "💀";
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 70%;
+    width: 100%;
+    font-size: 0.85rem;
+    top:0;
+    left: 0;
+    background-color: rgba(0,0,0,0.7);
+   
+  
+    
+}
+section.word{
+   
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+    color: white;
+    gap:2px;
+   
+
+
+}
+section.word>span{
+    height: 40px;
+    width: 40px;
+    background-color: #323232;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.25rem;
+    border-bottom: 1px soild #F9F4DA;
+   
+}
+section.word>span.missed-letter{
+    color:#d1190c;
+}
+
+
+.keyboard{
+
+ 
+    display:flex;
+    flex-wrap: wrap;
+   margin-top: 50px;
+    gap:8px;
+    justify-content: center;
+    max-width: 450px;
+  
+
+}
+ section.keyboard > button {
+    height: 35px;
+    width:35px;
+    background-color: #FCBA29;
+    border:1px soild #D7D7D7;
+    margin-top: 20px;
+    cursor: pointer;
+    border-radius: 5px;
+}
+section.keyboard > button.correct{
+    background-color: #10A95B;
+}
+section.keyboard > button.wrong{
+    background-color: red;
+}
+section.keyboard > button:disabled{
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+ button.newgame{
+    height: 50px;
+    width: 150px;
+    background-color: rgb(19, 116, 180);
+    cursor: pointer;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    margin-top: 20px;
+    border-radius: 5px;
+    margin-left: 150px;
+    color: white;
+
+}
+
+
+
+
+body, html, #root {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: #f5f5f5;
+}
+
+.app-container {
+  position: relative;
+  height: 100%;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+.top-right-buttons {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  display: flex;
+  gap: 12px;
+  z-index: 100;
+}
+
+.action-button {
+  padding: 10px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  background: #4a6bdf;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  transition: all 0.2s ease;
+}
+
+.action-button:hover {
+  background: #3a5ad9;
+  transform: translateY(-1px);
+}
+
+.action-button:active {
+  transform: translateY(0);
+}
+
+.canvas-wrapper {
+  position: relative;
+  width: 100%;
+  max-width: 800px;
+  max-height: 600px;
+  margin: 80px auto 40px;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+  background: white;
+}
+
+.text-edit-input {
+  position: absolute;
+  font-size: 16px;
+  z-index: 150;
+  min-width: 200px;
+  background: white;
+  padding: 8px 12px;
+  border: 2px solid #4a6bdf;
+  border-radius: 6px;
+  outline: none;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+}
+
+@media (max-width: 768px) {
+  .top-right-buttons {
+    position: static;
+    margin-bottom: 20px;
+    justify-content: center;
+    width: 100%;
+  }
+  
+  .canvas-wrapper {
+    margin: 20px auto;
+  }
+  
+  .action-button {
+    flex: 1;
+    text-align: center;
+  }
+}.shared-notice {
+  position: fixed;
+  top: 70px;
+  right: 20px;
+  background: #4a6bdf;
+  color: white;
+  padding: 10px 15px;
+  border-radius: 6px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+  z-index: 100;
+  max-width: 300px;
+  animation: slideIn 0.3s ease-out;
+}*/
+body, html, #root {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: #f5f5f5;
+}
+
+.app-container {
+  position: relative;
+  height: 100%;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+.top-right-buttons {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  display: flex;
+  gap: 12px;
+  z-index: 100;
+}
+
+.action-button {
+  padding: 10px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  background: #4a6bdf;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  transition: all 0.2s ease;
+}
+
+.action-button:hover {
+  background: #3a5ad9;
+  transform: translateY(-1px);
+}
+
+.action-button:active {
+  transform: translateY(0);
+}
+
+.canvas-wrapper {
+  position: relative;
+  width: 100%;
+  max-width: 800px;
+  max-height: 600px;
+  margin: 80px auto 40px;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+  background: white;
+}
+
+.text-edit-input {
+  position: absolute;
+  font-size: 16px;
+  z-index: 150;
+  min-width: 200px;
+  background: white;
+  padding: 8px 12px;
+  border: 2px solid #4a6bdf;
+  border-radius: 6px;
+  outline: none;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+}
+
+
+
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@media (max-width: 768px) {
+  .top-right-buttons {
+    position: static;
+    margin-bottom: 20px;
+    justify-content: center;
+    width: 100%;
+  }
+  
+  .canvas-wrapper {
+    margin: 20px auto;
+  }
+  
+  .action-button {
+    flex: 1;
+    text-align: center;
+  }
+
+  .shared-notice {
+    top: 120px;
+    right: 50%;
+    transform: translateX(50%);
+    width: 90%;
+    max-width: none;
+  }
+}
