@@ -14,59 +14,73 @@ export default function App() {
   const sharedY = parseFloat(urlParams.get('y'));
 
   // State management
-  const [text, setText] = useState(sharedText || "Double-click to edit");
-  const [isEditing, setIsEditing] = useState(false);
-  const [position, setPosition] = useState({ 
-    x: !isNaN(sharedX) ? sharedX : 100, 
-    y: !isNaN(sharedY) ? sharedY : 100 
-  });
+  const [textElements, setTextElements] = useState([
+    {
+      id: Date.now(),
+      text: sharedText || "Double Click to edit",
+      position: {
+        x: !isNaN(sharedX) ? sharedX : 100,
+        y: !isNaN(sharedY) ? sharedY : 100,
+      },
+      isEditing: false,
+    }
+  ]);
+
+  const [nextId, setNextId] = useState(2);
   const stageRef = useRef();
-  const textRef = useRef();
+  const textRefs = useRef({}); // Changed to use an object to store multiple refs
   const [image] = useImage(posterImg);
   const [dimensions, setDimensions] = useState({
     width: Math.min(window.innerWidth - 40, 800),
     height: Math.min(window.innerHeight - 40, 1000),
   });
 
-  
   const posterWidth = 800;
   const posterHeight = 600;
 
-  const savePosterData=async()=>{
-    try{
-      await setDoc(doc(db,"posterHistory", Date.now().toString()),{
-        text:text,
-        position:position,
-        updatedAt:timestamp
-      },{merge:true});
+  const savePosterData = async () => {
+    try {
+      await setDoc(doc(db, "posterHistory", Date.now().toString()), {
+        textElements: textElements,
+        updatedAt: timestamp
+      }, { merge: true });
       console.log("saved in firebase data");
-    }catch(error){
-      console.log("Error Saving:",error)
+    } catch (error) {
+      console.log("Error Saving:", error);
     }
   };
 
-const loadPosterData=async()=>{
-  const docRef = doc(db,"poster","current");
-  const docSnap= await getDoc(docRef);
+  const loadPosterData = async () => {
+    const docRef = doc(db, "poster", "current");
+    const docSnap = await getDoc(docRef);
 
-  if(docSnap.exists()){
-    setText(docSnap.data().text || "Double Click to edit");
-    setPosition(docSnap.data().position ||{x:100,y:100});
-  }
-};
-useEffect(()=>{
-  loadPosterData();
-},[])
+    if (docSnap.exists() && docSnap.data().textElements) {
+      setTextElements(docSnap.data().textElements);
+      setNextId(docSnap.data().textElements.length + 1);
+    } else {
+      setTextElements([{
+        id: 1,
+        text: "Double click to edit",
+        position: { x: 100, y: 100 },
+        isEditing: false
+      }]);
+      setNextId(2);
+    }
+  };
 
-useEffect(()=>{
-  savePosterData();
-},[text,position]);
-  
+  useEffect(() => {
+    loadPosterData();
+  }, []);
+
+  useEffect(() => {
+    savePosterData();
+  }, [textElements]);
+
   useEffect(() => {
     const handleResize = () => {
       setDimensions({
         width: Math.min(window.innerWidth - 40, 800),
-        height:  Math.min(window.innerHeight - 40,1000),
+        height: Math.min(window.innerHeight - 40, 1000),
       });
     };
 
@@ -76,15 +90,47 @@ useEffect(()=>{
 
   // Generate shareable link
   const generateShareLink = () => {
+    if (textElements.length === 0) return window.location.href;
+    
+    const firstText = textElements[0];
     const currentUrl = new URL(window.location.href);
-    currentUrl.searchParams.set('text', text);
-    currentUrl.searchParams.set('x', position.x);
-    currentUrl.searchParams.set('y', position.y);
+    currentUrl.searchParams.set('text', firstText.text);
+    currentUrl.searchParams.set('x', firstText.position.x);
+    currentUrl.searchParams.set('y', firstText.position.y);
     return currentUrl.toString();
   };
 
-  
-  const handleDragEnd = (e) => {
+  const addNewText = () => {
+    const newTextElement = {
+      id: nextId,
+      text: "Double Click to edit",
+      position: { x: 100, y: 100 + (nextId * 30) },
+      isEditing: false
+    };
+    setTextElements([...textElements, newTextElement]);
+    setNextId(nextId + 1);
+  };
+
+  const handleTextChange = (id, newText) => {
+    setTextElements(textElements.map(el =>
+      el.id === id ? { ...el, text: newText } : el
+    ));
+  };
+
+  const handlePositionChange = (id, newPosition) => {
+    setTextElements(textElements.map(el =>
+      el.id === id ? { ...el, position: newPosition } : el
+    ));
+  };
+
+  const toggleEditing = (id, isEditing) => {
+    setTextElements(textElements.map(el =>
+      el.id === id ? { ...el, isEditing } : el
+    ));
+  };
+
+  // Updated handleDragEnd to work with specific element
+  const handleDragEnd = (e, id) => {
     const textNode = e.target;
     const textWidth = textNode.width() * textNode.scaleX();
     const textHeight = textNode.height() * textNode.scaleY();
@@ -92,13 +138,13 @@ useEffect(()=>{
     let newX = Math.max(0, Math.min(posterWidth - textWidth, textNode.x()));
     let newY = Math.max(0, Math.min(posterHeight - textHeight, textNode.y()));
     
-    setPosition({ x: newX, y: newY });
+    handlePositionChange(id, { x: newX, y: newY });
     textNode.position({ x: newX, y: newY });
   };
 
-  // Real-time boundary checking during drag
-  const dragBoundFunc = (pos) => {
-    const textNode = textRef.current;
+  // Updated dragBoundFunc to work with specific element
+  const dragBoundFunc = (pos, id) => {
+    const textNode = textRefs.current[id];
     if (!textNode) return pos;
     
     const textWidth = textNode.width() * textNode.scaleX();
@@ -164,6 +210,9 @@ useEffect(()=>{
   return (
     <div className="app-container">
       <div className="top-right-buttons">
+        <button onClick={addNewText} className="action-button add-button">
+          +
+        </button>
         <button onClick={sharePoster} className="action-button">
           Share Editable Poster
         </button>
@@ -171,8 +220,6 @@ useEffect(()=>{
           Download Poster
         </button>
       </div>
-
-     
 
       <div className="canvas-wrapper" style={{
         width: `${dimensions.width}px`,
@@ -191,39 +238,46 @@ useEffect(()=>{
               width={posterWidth} 
               height={posterHeight} 
             />
-            <KonvaText
-              ref={textRef}
-              text={text}
-              x={position.x}
-              y={position.y}
-              fontSize={24}
-              fill="#333"
-              draggable
-              onDblClick={() => setIsEditing(true)}
-              onTap={()=> setIsEditing(true)}
-              onDragEnd={handleDragEnd}
-              dragBoundFunc={dragBoundFunc}
-            />
+            {textElements.map((element) => (
+              <React.Fragment key={element.id}>
+                <KonvaText
+                  ref={ref => textRefs.current[element.id] = ref}
+                  text={element.text}
+                  x={element.position.x}
+                  y={element.position.y}
+                  fontSize={24}
+                  fill="#333"
+                  draggable
+                  onDblClick={() => toggleEditing(element.id, true)}
+                  onTap={() => toggleEditing(element.id, true)}
+                  onDragEnd={(e) => handleDragEnd(e, element.id)}
+                  dragBoundFunc={(pos) => dragBoundFunc(pos, element.id)}
+                />
+              </React.Fragment>
+            ))}
           </Layer>
         </Stage>
 
-        {isEditing && (
-          <input
-            className="text-edit-input"
-            type="text"
-            value={text}
-            autoFocus
-            onChange={(e) => setText(e.target.value)}
-            onBlur={() => setIsEditing(false)}
-            onKeyDown={(e) => e.key === 'Enter' && setIsEditing(false)}
-            style={{
-              top: `${position.y * scale}px`,
-              left: `${position.x * scale}px`,
-              transform: `scale(${1/scale})`,
-              transformOrigin: 'top left'
-            }}
-          />
-        )}
+        {textElements.map((element) => (
+          element.isEditing && (
+            <input
+              key={`input-${element.id}`}
+              className="text-edit-input"
+              type="text"
+              value={element.text}
+              autoFocus
+              onChange={(e) => handleTextChange(element.id, e.target.value)}
+              onBlur={() => toggleEditing(element.id, false)}
+              onKeyDown={(e) => e.key === 'Enter' && toggleEditing(element.id, false)}
+              style={{
+                top: `${element.position.y * scale}px`,
+                left: `${element.position.x * scale}px`,
+                transform: `scale(${1/scale})`,
+                transformOrigin: 'top left'
+              }}
+            />
+          )
+        ))}
       </div>
     </div>
   );
