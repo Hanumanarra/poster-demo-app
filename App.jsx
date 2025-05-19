@@ -1,7 +1,7 @@
 import React, { useRef, useState, useEffect } from "react";
 import { Stage, Layer, Image, Text as KonvaText } from "react-konva";
 import useImage from "use-image";
-import posterImg from "/src/poster.png";
+import posterImg from "/poster.png";
 import { db, timestamp } from "./firebase";
 import { doc, setDoc, getDoc } from "firebase/firestore";
 
