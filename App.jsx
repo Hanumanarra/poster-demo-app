@@ -1,42 +1,55 @@
-import React from "react";
-import { useRef, useState, useEffect } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import { Stage, Layer, Image, Text as KonvaText } from "react-konva";
 import useImage from "use-image";
-import posterImg from "/poster.png";
-import {db,timestamp} from "./firebase"
-import {doc,setDoc,getDoc} from "firebase/firestore"
+import posterImg from "/src/poster.png";
+import { db, timestamp } from "./firebase";
+import { doc, setDoc, getDoc } from "firebase/firestore";
+
+// Custom hook for device detection
+const useDeviceDetect = () => {
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkIfMobile = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+
+    // Initial check
+    checkIfMobile();
+    
+    // Add event listener for resize
+    window.addEventListener('resize', checkIfMobile);
+    
+    // Cleanup
+    return () => window.removeEventListener('resize', checkIfMobile);
+  }, []);
+
+  return { isMobile };
+};
 
 export default function App() {
-  // Check URL for shared poster data
-  const urlParams = new URLSearchParams(window.location.search);
-  const sharedText = urlParams.get('text');
-  const sharedX = parseFloat(urlParams.get('x'));
-  const sharedY = parseFloat(urlParams.get('y'));
-
-  // State management
+  const { isMobile } = useDeviceDetect();
+  
+  // Rest of your existing state and functions...
   const [textElements, setTextElements] = useState([
     {
       id: Date.now(),
-      text: sharedText || "Double Click to edit",
-      position: {
-        x: !isNaN(sharedX) ? sharedX : 100,
-        y: !isNaN(sharedY) ? sharedY : 100,
-      },
+      text: "Double-click to edit",
+      position: { x: 100, y: 100 },
       isEditing: false,
     }
   ]);
-
   const [nextId, setNextId] = useState(2);
   const stageRef = useRef();
-  const textRefs = useRef({}); // Changed to use an object to store multiple refs
+  const textRefs = useRef({});
   const [image] = useImage(posterImg);
   const [dimensions, setDimensions] = useState({
     width: Math.min(window.innerWidth - 40, 800),
-    height: Math.min(window.innerHeight - 40, 1000),
+    height: Math.min(window.innerHeight - 50, 1000),
   });
 
-  const posterWidth = 800;
-  const posterHeight = 600;
+  const posterWidth = dimensions.width;
+  const posterHeight = dimensions.height;
 
   const savePosterData = async () => {
     try {
@@ -44,7 +57,6 @@ export default function App() {
         textElements: textElements,
         updatedAt: timestamp
       }, { merge: true });
-      console.log("saved in firebase data");
     } catch (error) {
       console.log("Error Saving:", error);
     }
@@ -60,7 +72,7 @@ export default function App() {
     } else {
       setTextElements([{
         id: 1,
-        text: "Double click to edit",
+        text: "Double-click to edit",
         position: { x: 100, y: 100 },
         isEditing: false
       }]);
@@ -80,7 +92,7 @@ export default function App() {
     const handleResize = () => {
       setDimensions({
         width: Math.min(window.innerWidth - 40, 800),
-        height: Math.min(window.innerHeight - 40, 1000),
+        height: Math.min(window.innerHeight - 50, 1000),
       });
     };
 
@@ -88,10 +100,8 @@ export default function App() {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  // Generate shareable link
   const generateShareLink = () => {
     if (textElements.length === 0) return window.location.href;
-    
     const firstText = textElements[0];
     const currentUrl = new URL(window.location.href);
     currentUrl.searchParams.set('text', firstText.text);
@@ -103,7 +113,7 @@ export default function App() {
   const addNewText = () => {
     const newTextElement = {
       id: nextId,
-      text: "Double Click to edit",
+      text: "Double-click to edit",
       position: { x: 100, y: 100 + (nextId * 30) },
       isEditing: false
     };
@@ -129,7 +139,6 @@ export default function App() {
     ));
   };
 
-  // Updated handleDragEnd to work with specific element
   const handleDragEnd = (e, id) => {
     const textNode = e.target;
     const textWidth = textNode.width() * textNode.scaleX();
@@ -142,7 +151,6 @@ export default function App() {
     textNode.position({ x: newX, y: newY });
   };
 
-  // Updated dragBoundFunc to work with specific element
   const dragBoundFunc = (pos, id) => {
     const textNode = textRefs.current[id];
     if (!textNode) return pos;
@@ -156,7 +164,6 @@ export default function App() {
     };
   };
 
-  // Download handler
   const downloadPoster = async () => {
     try {
       const dataUrl = await new Promise(resolve => {
@@ -174,18 +181,15 @@ export default function App() {
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-      
     } catch (error) {
       console.error("Download error:", error);
       alert("Couldn't download image. Please try again.");
     }
   };
 
-  // Share handler
   const sharePoster = async () => {
     try {
       const shareLink = generateShareLink();
-      
       if (navigator.canShare?.({ url: shareLink })) {
         await navigator.share({
           title: "Edit my poster!",
@@ -194,7 +198,7 @@ export default function App() {
         });
       } else {
         await navigator.clipboard.writeText(shareLink);
-        alert("Link copied to clipboard! Send this to let others edit your poster.");
+        alert("Link copied to clipboard!");
       }
     } catch (error) {
       console.error("Share error:", error);
@@ -209,25 +213,27 @@ export default function App() {
 
   return (
     <div className="app-container">
-      <div className="top-right-buttons">
-        <button onClick={addNewText} className="action-button add-button">
-          +
-        </button>
-        <button onClick={sharePoster} className="action-button">
-          Share Editable Poster
-        </button>
-        <button onClick={downloadPoster} className="action-button">
-          Download Poster
-        </button>
-      </div>
+      {/* Desktop Buttons - Top Right */}
+      {!isMobile && (
+        <div className="desktop-buttons">
+          <button onClick={addNewText} className="action-button add-button">
+            +
+          </button>
+          <button onClick={sharePoster} className="action-button">
+            Share
+          </button>
+          <button onClick={downloadPoster} className="action-button download-button">
+            Download
+          </button>
+        </div>
+      )}
 
       <div className="canvas-wrapper" style={{
-        width: `${dimensions.width}px`,
-        height: `${dimensions.height}px`,
+        margin: isMobile ? '0' : '60px auto 20px'
       }}>
         <Stage 
-          width={dimensions.width} 
-          height={dimensions.height} 
+          width={isMobile ? window.innerWidth : dimensions.width} 
+          height={isMobile ? window.innerHeight - 80 : dimensions.height} 
           ref={stageRef}
           scaleX={scale}
           scaleY={scale}
@@ -279,6 +285,21 @@ export default function App() {
           )
         ))}
       </div>
+
+      {/* Mobile Buttons - Bottom */}
+      {isMobile && (
+        <div className="mobile-buttons">
+          <button onClick={addNewText} className="action-button add-button">
+            Add Text
+          </button>
+          <button onClick={sharePoster} className="action-button">
+            Share
+          </button>
+          <button onClick={downloadPoster} className="action-button download-button">
+            Download
+          </button>
+        </div>
+      )}
     </div>
   );
 }
